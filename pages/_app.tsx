@@ -15,6 +15,7 @@ import {
   useTheme,
 } from "@mui/material";
 import { getStoredTheme, getThemeOptions, setStoredTheme } from "../src/theme";
+import { AuthContextProvider } from "../context/AuthContext";
 // import Sidebar from "../components/layout/Sidebar";
 
 // import Rightbar from "../components/layout/Rightbar";
@@ -22,6 +23,10 @@ import { getStoredTheme, getThemeOptions, setStoredTheme } from "../src/theme";
 // import Navbar from "../components/layout/Navbar";
 // import Add from "../components/layout/Add";
 
+import "../src/firebase";
+import Navbar from "../components/Navbar";
+import { useRouter } from "next/router";
+import ProtectedRoute from "../components/ProtectedRoute";
 function MyApp({ Component, pageProps }: AppProps) {
   const [mode, setMode] = useState<PaletteMode>("dark"); // default is dark mode
   useEffect(() => {
@@ -34,21 +39,33 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   // update the theme only if changed
   const theme = useMemo(() => createTheme(getThemeOptions(mode)), [mode]);
+  const noAuthRequired = ["/", "/Login", "/Signup"];
+  const router = useRouter();
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <Box bgcolor={"background.default"} color={"text.primary"}>
-        {/* <Navbar />
+    <AuthContextProvider>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Navbar />
+
+        <Box bgcolor={"background.default"} color={"text.primary"}>
+          {/* <Navbar />
         <Stack direction="row" spacing={2} justifyContent="space-between">
           <Sidebar setMode={setMode} mode={mode} />
           <Feed />
           <Rightbar />
         </Stack>
         <Add /> */}
-        <Component {...pageProps} />
-      </Box>
-    </ThemeProvider>
+          {noAuthRequired.includes(router.pathname) ? (
+            <Component {...pageProps} />
+          ) : (
+            <ProtectedRoute>
+              <Component {...pageProps} />
+            </ProtectedRoute>
+          )}
+        </Box>
+      </ThemeProvider>
+    </AuthContextProvider>
   );
 }
 
